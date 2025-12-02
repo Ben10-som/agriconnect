@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriConnect - Simulateur IVR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #764ba2;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .phone {
+            background: linear-gradient(145deg, #2c3e50, #34495e);
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .screen {
+            background: #ecf0f1;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 180px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .screen-text {
+            color: #2c3e50;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .audio-indicator {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .audio-indicator.active {
+            display: flex;
+        }
+
+        .audio-bar {
+            width: 4px;
+            background: #667eea;
+            border-radius: 2px;
+            animation: audioWave 0.8s ease-in-out infinite;
+        }
+
+        .audio-bar:nth-child(1) { height: 15px; animation-delay: 0s; }
+        .audio-bar:nth-child(2) { height: 25px; animation-delay: 0.1s; }
+        .audio-bar:nth-child(3) { height: 20px; animation-delay: 0.2s; }
+        .audio-bar:nth-child(4) { height: 30px; animation-delay: 0.3s; }
+        .audio-bar:nth-child(5) { height: 18px; animation-delay: 0.4s; }
+
+        @keyframes audioWave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+
+        .input-display {
+            background: #fff;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 18px;
+            text-align: center;
+            min-height: 35px;
+            color: #2c3e50;
+            border: 2px solid #bdc3c7;
+        }
+
+        .call-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .call-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .call-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .call-btn:active {
+            transform: translateY(0);
+        }
+
+        .call-btn.start {
+            background: linear-gradient(145deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .call-btn.end {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .call-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .key {
+            aspect-ratio: 1;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #ecf0f1, #bdc3c7);
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .key:hover {
+            background: linear-gradient(145deg, #d5d8dc, #a6acaf);
+            transform: scale(1.05);
+        }
+
+        .key:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .key:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .server-panel h2 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .json-display {
+            background: #2c3e50;
+            color: #2ecc71;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .product-card {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .product-card h3 {
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .product-info {
+            display: grid;
+            gap: 10px;
+        }
+
+        .product-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .product-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .export-btn {
+            width: 100%;
+            padding: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .export-btn:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .status-badge.idle {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .status-badge.active {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .audio-upload {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #667eea;
+        }
+
+        .audio-upload h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .audio-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .audio-item label {
+            display: block;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .audio-item input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .audio-status {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 12px;
+            color: #27ae60;
+        }
+
+        .language-section {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Panneau Téléphone -->
+        <div class="panel">
+            <h1>📱 Téléphone Virtuel</h1>
+            <p class="subtitle">Simulateur IVR AgriConnect - Wolof & Poular</p>
+            
+            <div class="phone">
+                <div class="screen">
+                    <div class="status-badge idle" id="statusBadge">INACTIF</div>
+                    <div class="language-section" id="languageIndicator" style="display: none;">
+                        🌍 Langue: <strong id="currentLanguage">-</strong>
+                    </div>
+                    <div class="screen-text" id="screenText">Appuyez sur "Appeler" pour commencer</div>
+                    <div class="audio-indicator" id="audioIndicator">
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                    </div>
+                    <div class="input-display" id="inputDisplay"></div>
+                </div>
+
+                <div class="call-buttons">
+                    <button class="call-btn start" id="callBtn">📞 Appeler AgriConnect</button>
+                    <button class="call-btn end" id="hangupBtn" disabled>📴 Raccrocher</button>
+                </div>
+
+                <div class="keypad">
+                    <button class="key" data-key="1" disabled>1</button>
+                    <button class="key" data-key="2" disabled>2</button>
+                    <button class="key" data-key="3" disabled>3</button>
+                    <button class="key" data-key="4" disabled>4</button>
+                    <button class="key" data-key="5" disabled>5</button>
+                    <button class="key" data-key="6" disabled>6</button>
+                    <button class="key" data-key="7" disabled>7</button>
+                    <button class="key" data-key="8" disabled>8</button>
+                    <button class="key" data-key="9" disabled>9</button>
+                    <button class="key" data-key="*" disabled>*</button>
+                    <button class="key" data-key="0" disabled>0</button>
+                    <button class="key" data-key="#" disabled>#</button>
+                </div>
+            </div>
+
+            <!-- Section Upload Audio -->
+            <h3>🎤 Enregistrements Audio IVR</h3>
+
+            <h4 style="color: #764ba2; margin: 15px 0 10px 0;">Message d'accueil</h4>
+            <div class="audio-item">
+                <label>Bienvenue + Choix Langue (Multilingue) <span class="audio-status" id="status-welcome"></span></label>
+                <input type="file" accept="audio/*" id="audio-welcome">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Ex: "Bienvenue à AgriConnect. Welcome. Pour Wolof tapez 1, For Poular press 2"
+                </small>
+            </div>
+                <h4 style="color: #764ba2; margin: 15px 0 10px 0;">Wolof</h4>
+
+                <div class="audio-item">
+                    <label>Catégories (Wolof) <span class="audio-status" id="status-category-wolof"></span></label>
+                    <input type="file" accept="audio/*" id="audio-category-wolof">
+                </div>
+                <div class="audio-item">
+                    <label>Céréales (Wolof) <span class="audio-status" id="status-cereales-wolof"></span></label>
+                    <input type="file" accept="audio/*" id="audio-cereales-wolof">
+                </div>
+                <div class="audio-item">
+                    <label>Légumes (Wolof) <span class="audio-status" id="status-legumes-wolof"></span></label>
+                    <input type="file" accept="audio/*" id="audio-legumes-wolof">
+                </div>
+                <div class="audio-item">
+                    <label>Fruits (Wolof) <span class="audio-status" id="status-fruits-wolof"></span></label>
+                    <input type="file" accept="audio/*" id="audio-fruits-wolof">
+                </div>
+                <div class="audio-item">
+                    <label>Quantité (Wolof) <span class="audio-status" id="status-quantity-wolof"></span></label>
+                    <input type="file" accept="audio/*" id="audio-quantity-wolof">
+                </div>
+                <div class="audio-item">
+                    <label>Prix (Wolof) <span class="audio-status" id="status-price-wolof"></span></label>
+                    <input type="file" accept="audio/*" id="audio-price-wolof">
+                </div>
+                <div class="audio-item">
+                    <label>Confirmation (Wolof) <span class="audio-status" id="status-confirm-wolof"></span></label>
+                    <input type="file" accept="audio/*" id="audio-confirm-wolof">
+                </div>
+
+                <h4 style="color: #764ba2; margin: 15px 0 10px 0;">Poular</h4>
+  
+                <div class="audio-item">
+                    <label>Catégories (Poular) <span class="audio-status" id="status-category-poular"></span></label>
+                    <input type="file" accept="audio/*" id="audio-category-poular">
+                </div>
+                <div class="audio-item">
+                    <label>Céréales (Poular) <span class="audio-status" id="status-cereales-poular"></span></label>
+                    <input type="file" accept="audio/*" id="audio-cereales-poular">
+                </div>
+                <div class="audio-item">
+                    <label>Légumes (Poular) <span class="audio-status" id="status-legumes-poular"></span></label>
+                    <input type="file" accept="audio/*" id="audio-legumes-poular">
+                </div>
+                <div class="audio-item">
+                    <label>Fruits (Poular) <span class="audio-status" id="status-fruits-poular"></span></label>
+                    <input type="file" accept="audio/*" id="audio-fruits-poular">
+                </div>
+                <div class="audio-item">
+                    <label>Quantité (Poular) <span class="audio-status" id="status-quantity-poular"></span></label>
+                    <input type="file" accept="audio/*" id="audio-quantity-poular">
+                </div>
+                <div class="audio-item">
+                    <label>Prix (Poular) <span class="audio-status" id="status-price-poular"></span></label>
+                    <input type="file" accept="audio/*" id="audio-price-poular">
+                </div>
+                <div class="audio-item">
+                    <label>Confirmation (Poular) <span class="audio-status" id="status-confirm-poular"></span></label>
+                    <input type="file" accept="audio/*" id="audio-confirm-poular">
+                </div>
+            </div>
+        </div>
+
+        <!-- Panneau Serveur -->
+        <div class="panel server-panel">
+            <h2>🖥️ Panneau Serveur</h2>
+            
+            <h3 style="color: #2c3e50; margin-bottom: 10px;">Données en temps réel (JSON)</h3>
+            <div class="json-display" id="jsonDisplay">
+{
+  "status": "idle",
+  "current_state": "IDLE",
+  "language": null,
+  "data": {}
+}
+            </div>
+
+            <div id="productCard"></div>
+            
+            <button class="export-btn" id="exportBtn" style="display: none;">📥 Exporter en JSON</button>
+        </div>
+    </div>
+
+    <script>
+        // État de l'application
+        let state = {
+            currentState: 'IDLE',
+            language: '',
+            category: '',
+            product: '',
+            quantity: '',
+            price: '',
+            inputBuffer: '',
+            audioContext: null,
+            audioFiles: {},
+            currentAudio: null
+        };
+
+        const categories = {
+            '1': 'Céréales',
+            '2': 'Légumes',
+            '3': 'Fruits'
+        };
+
+        const products = {
+            'cereales': {
+                '1': { name: 'Mil', unit: 'kg' },
+                '2': { name: 'Maïs', unit: 'kg' },
+                '3': { name: 'Riz', unit: 'kg' },
+                '4': { name: 'Sorgho', unit: 'kg' },
+                '5': { name: 'Fonio', unit: 'kg' }
+            },
+            'legumes': {
+                '1': { name: 'Oignon', unit: 'kg' },
+                '2': { name: 'Tomate', unit: 'kg' },
+                '3': { name: 'Pomme de terre', unit: 'kg' },
+                '4': { name: 'Carotte', unit: 'kg' },
+                '5': { name: 'Chou', unit: 'kg' },
+                '6': { name: 'Piment', unit: 'kg' }
+            },
+            'fruits': {
+                '1': { name: 'Mangue', unit: 'kg' },
+                '2': { name: 'Pastèque', unit: 'kg' },
+                '3': { name: 'Banane', unit: 'kg' },
+                '4': { name: 'Orange', unit: 'kg' },
+                '5': { name: 'Papaye', unit: 'kg' }
+            }
+        };
+
+        // Éléments DOM
+        const screenText = document.getElementById('screenText');
+        const inputDisplay = document.getElementById('inputDisplay');
+        const jsonDisplay = document.getElementById('jsonDisplay');
+        const productCard = document.getElementById('productCard');
+        const callBtn = document.getElementById('callBtn');
+        const hangupBtn = document.getElementById('hangupBtn');
+        const statusBadge = document.getElementById('statusBadge');
+        const audioIndicator = document.getElementById('audioIndicator');
+        const languageIndicator = document.getElementById('languageIndicator');
+        const currentLanguage = document.getElementById('currentLanguage');
+        const keys = document.querySelectorAll('.key');
+        const exportBtn = document.getElementById('exportBtn');
+
+        // Initialiser l'AudioContext
+        function initAudio() {
+            if (!state.audioContext) {
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Jouer un son DTMF
+        function playDTMF(key) {
+            initAudio();
+            const frequencies = {
+                '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
+                '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
+                '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
+                '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
+            };
+
+            if (!frequencies[key]) return;
+
+            const ctx = state.audioContext;
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            osc1.frequency.value = frequencies[key][0];
+            osc2.frequency.value = frequencies[key][1];
+            
+            gainNode.gain.value = 0.3;
+
+            osc1.connect(gainNode);
+            osc2.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            osc1.start();
+            osc2.start();
+
+            setTimeout(() => {
+                osc1.stop();
+                osc2.stop();
+            }, 150);
+        }
+
+        // Jouer un fichier audio uploadé
+        function playUploadedAudio(audioKey) {
+            if (state.currentAudio) {
+                state.currentAudio.pause();
+                state.currentAudio.currentTime = 0;
+            }
+
+            if (state.audioFiles[audioKey]) {
+                state.currentAudio = new Audio(state.audioFiles[audioKey]);
+                audioIndicator.classList.add('active');
+                
+                state.currentAudio.onended = () => {
+                    audioIndicator.classList.remove('active');
+                    state.currentAudio = null;
+                };
+                state.currentAudio.play();
+            }
+        }
+
+        // Arrêter l'audio en cours
+        function stopCurrentAudio() {
+            if (state.currentAudio) {
+                state.currentAudio.pause();
+                state.currentAudio.currentTime = 0;
+                state.currentAudio = null;
+                audioIndicator.classList.remove('active');
+            }
+        }
+
+        // Jouer la tonalité d'appel
+        function playRingingTone() {
+            initAudio();
+            const ctx = state.audioContext;
+            let beepCount = 0;
+            const maxBeeps = 3;
+
+            function playBeep() {
+                if (beepCount >= maxBeeps) {
+                    setTimeout(() => {
+                        state.currentState = 'LANGUAGE_CHOICE';
+                        updateDisplay('🌍 Sélection de la langue...');
+                        playUploadedAudio('welcome');
+                    }, 500);
+                    return;
+                }
+
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+
+                osc.frequency.value = 440;
+                gainNode.gain.value = 0.3;
+
+                osc.connect(gainNode);
+                gainNode.connect(ctx.destination);
+
+                osc.start();
+                
+                setTimeout(() => {
+                    osc.stop();
+                    beepCount++;
+                    if (beepCount < maxBeeps) {
+                        setTimeout(playBeep, 1200);
+                    } else {
+                        playBeep();
+                    }
+                }, 1200);
+            }
+
+            playBeep();
+        }
+
+        // Gérer les uploads d'audio
+        const audioKeys = [
+            'welcome',
+            'category-wolof', 'cereales-wolof', 'legumes-wolof', 'fruits-wolof', 
+            'quantity-wolof', 'price-wolof', 'confirm-wolof',
+         'category-poular', 'cereales-poular', 'legumes-poular', 'fruits-poular',
+            'quantity-poular', 'price-poular', 'confirm-poular'
+        ];
+
+        audioKeys.forEach(key => {
+            const input = document.getElementById(`audio-${key}`);
+            const status = document.getElementById(`status-${key}`);
+            
+            if (input && status) {
+                input.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            state.audioFiles[key] = event.target.result;
+                            status.textContent = '✓ Chargé';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+
+        // Mettre à jour l'affichage
+        function updateDisplay(text) {
+            screenText.textContent = text;
+            updateJSON();
+        }
+
+        // Mettre à jour le JSON
+        function updateJSON() {
+            const data = {
+                status: state.currentState.toLowerCase(),
+                current_state: state.currentState,
+                language: state.language || null,
+                data: {}
+            };
+
+            if (state.product) {
+                data.data.category = state.category;
+                data.data.product_name = state.product;
+            }
+            if (state.quantity) {
+                data.data.quantity_value = parseInt(state.quantity);
+                data.data.quantity_unit = 'kg';
+            }
+            if (state.price) {
+                data.data.price_value = parseInt(state.price);
+                data.data.currency = 'XOF';
+            }
+            data.data.seller_phone = '+221 XX XXX XX XX';
+
+            jsonDisplay.textContent = JSON.stringify(data, null, 2);
+        }
+
+        // Gérer les touches
+        function handleKeyPress(key) {
+            stopCurrentAudio();
+            playDTMF(key);
+            
+            if (key === '#') {
+                processInput();
+            } else if (key === '*') {
+                state.inputBuffer = '';
+                inputDisplay.textContent = '';
+            } else {
+                state.inputBuffer += key;
+                inputDisplay.textContent = state.inputBuffer;
+                
+                if (state.currentState === 'LANGUAGE_CHOICE' || 
+                    state.currentState === 'MAIN_MENU' || 
+                    state.currentState === 'CATEGORY_CHOICE' || 
+                    state.currentState === 'PRODUCT_CHOICE') {
+                    processInput();
+                }
+            }
+        }
+
+        // Traiter l'entrée
+        function processInput() {
+            const input = state.inputBuffer;
+            const lang = state.language;
+            
+            switch(state.currentState) {
+            case 'LANGUAGE_CHOICE':
+                if (input === '1') {
+                    state.language = 'wolof';
+                    currentLanguage.textContent = 'Wolof';
+                    languageIndicator.style.display = 'block';
+                    state.currentState = 'CATEGORY_CHOICE';
+                    updateDisplay('📊 Catégories disponibles...');
+                    playUploadedAudio('category-wolof');
+                } else if (input === '2') {
+                    state.language = 'poular';
+                    currentLanguage.textContent = 'Poular';
+                    languageIndicator.style.display = 'block';
+                    state.currentState = 'CATEGORY_CHOICE';
+                    updateDisplay('📊 Catégories disponibles...');
+                    playUploadedAudio('category-poular');
+                }                    
+                    state.inputBuffer = '';
+                    inputDisplay.textContent = '';
+                    break;
+
+                case 'MAIN_MENU':
+                    if (input === '1') {
+                        state.currentState = 'CATEGORY_CHOICE';
+                        updateDisplay('📊 Catégories disponibles...');
+                        playUploadedAudio(`category-${lang}`);
+                    } else if (input === '2') {
+                        updateDisplay('📊 Consultation des offres...');
+                    } else if (input === '9') {
+                        updateDisplay('📊 Réécoute du menu...');
+                        playUploadedAudio(`welcome-${lang}`);
+                    }
+                    state.inputBuffer = '';
+                    inputDisplay.textContent = '';
+                    break;
+
+                case 'CATEGORY_CHOICE':
+                    if (categories[input]) {
+                        state.category = categories[input];
+                        state.currentState = 'PRODUCT_CHOICE';
+                        
+                        let audioKey = '';
+                        switch(input) {
+                            case '1': audioKey = 'cereales'; break;
+                            case '2': audioKey = 'legumes'; break;
+                            case '3': audioKey = 'fruits'; break;
+                        }
+                        
+                        updateDisplay(`📊 Catégorie : ${state.category}\n\nProduits disponibles...`);
+                        playUploadedAudio(`${audioKey}-${lang}`);
+                    }
+                    state.inputBuffer = '';
+                    inputDisplay.textContent = '';
+                    break;
+
+                case 'PRODUCT_CHOICE':
+                    let categoryKey = '';
+                    if (state.category === 'Céréales') categoryKey = 'cereales';
+                    else if (state.category === 'Légumes') categoryKey = 'legumes';
+                    else if (state.category === 'Fruits') categoryKey = 'fruits';
+
+                    if (products[categoryKey] && products[categoryKey][input]) {
+                        state.product = products[categoryKey][input].name;
+                        state.currentState = 'QUANTITY_INPUT';
+                        updateDisplay(`📊 Produit : ${state.product}\n\nQuantité...`);
+                        playUploadedAudio(`quantity-${lang}`);
+                    }
+                    state.inputBuffer = '';
+                    inputDisplay.textContent = '';
+                    break;
+
+                case 'QUANTITY_INPUT':
+                    if (input && /^\d+$/.test(input)) {
+                        state.quantity = input;
+                        state.currentState = 'PRICE_INPUT';
+                        updateDisplay(`📊 Quantité : ${state.quantity} kg\n\nPrix...`);
+                        playUploadedAudio(`price-${lang}`);
+                    }
+                    state.inputBuffer = '';
+                    inputDisplay.textContent = '';
+                    break;
+
+                case 'PRICE_INPUT':
+                    if (input && /^\d+$/.test(input)) {
+                        state.price = input;
+                        state.currentState = 'CONFIRMATION';
+                        updateDisplay(`📊 Prix : ${state.price} FCFA\n\nConfirmation...`);
+                        playUploadedAudio(`confirm-${lang}`);
+                    }
+                    state.inputBuffer = '';
+                    inputDisplay.textContent = '';
+                    break;
+
+                case 'CONFIRMATION':
+                    if (input === '1') {
+                        confirmProduct();
+                    } else if (input === '9') {
+                        resetCall();
+                        startCall();
+                    }
+                    state.inputBuffer = '';
+                    inputDisplay.textContent = '';
+                    break;
+            }
+        }
+
+        // Confirmer le produit
+        async function confirmProduct() {
+            const annonce = {
+                id: Date.now(),
+                language: state.language,
+                product_name: state.product,
+                category: state.category,
+                quantity_value: parseInt(state.quantity),
+                quantity_unit: 'kg',
+                price_value: parseInt(state.price),
+                currency: 'XOF',
+                seller_phone: '+221 XX XXX XX XX',
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const existing = await window.storage.get('agriconnect:annonces', true);
+                let annonces = [];
+                if (existing && existing.value) {
+                    annonces = JSON.parse(existing.value);
+                }
+                annonces.push(annonce);
+                await window.storage.set('agriconnect:annonces', JSON.stringify(annonces), true);
+            } catch (error) {
+                console.log('Première annonce enregistrée');
+                await window.storage.set('agriconnect:annonces', JSON.stringify([annonce]), true);
+            }
+
+            productCard.innerHTML = `
+                <div class="product-card">
+                    <h3>✅ Annonce Confirmée</h3>
+                    <div class="product-info">
+                        <div class="product-info-item">
+                            <strong>Langue :</strong>
+                            <span>${annonce.language === 'wolof' ? 'Wolof' : 'Poular'}</span>
+                        </div>
+                        <div class="product-info-item">
+                            <strong>Catégorie :</strong>
+                            <span>${annonce.category}</span>
+                        </div>
+                        <div class="product-info-item">
+                            <strong>Produit :</strong>
+                            <span>${annonce.product_name}</span>
+                        </div>
+                        <div class="product-info-item">
+                            <strong>Quantité :</strong>
+                            <span>${annonce.quantity_value} ${annonce.quantity_unit}</span>
+                        </div>
+                        <div class="product-info-item">
+                            <strong>Prix :</strong>
+                            <span>${annonce.price_value} ${annonce.currency}</span>
+                        </div>
+                        <div class="product-info-item">
+                            <strong>Vendeur :</strong>
+                            <span>${annonce.seller_phone}</span>
+                        </div>
+                        <div class="product-info-item">
+                            <strong>Date :</strong>
+                            <span>${new Date(annonce.timestamp).toLocaleString('fr-FR')}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            exportBtn.style.display = 'block';
+            updateDisplay('✅ Annonce enregistrée !\n\nMerci AgriConnect.');
+            
+            setTimeout(() => {
+                hangUp();
+            }, 3000);
+        }
+
+        // Démarrer l'appel
+        function startCall() {
+            callBtn.disabled = true;
+            hangupBtn.disabled = false;
+            keys.forEach(k => k.disabled = false);
+            statusBadge.textContent = 'APPEL EN COURS';
+            statusBadge.className = 'status-badge active';
+            
+            updateDisplay('☎️ Composition du 1212...\n\n📊 Tonalité...');
+            inputDisplay.textContent = '1212';
+            
+            playRingingTone();
+        }
+
+        // Raccrocher
+        function hangUp() {
+            stopCurrentAudio();
+            resetCall();
+        }
+
+        // Réinitialiser
+        function resetCall() {
+            stopCurrentAudio();
+            
+            state.currentState = 'IDLE';
+            state.language = '';
+            state.category = '';
+            state.product = '';
+            state.quantity = '';
+            state.price = '';
+            state.inputBuffer = '';
+            
+            callBtn.disabled = false;
+            hangupBtn.disabled = true;
+            keys.forEach(k => k.disabled = true);
+            statusBadge.textContent = 'INACTIF';
+            statusBadge.className = 'status-badge idle';
+            languageIndicator.style.display = 'none';
+            
+            updateDisplay('Appuyez sur "Appeler" pour commencer');
+            inputDisplay.textContent = '';
+            audioIndicator.classList.remove('active');
+        }
+
+        // Exporter les données
+        async function exportData() {
+            try {
+                const result = await window.storage.get('agriconnect:annonces', true);
+                if (result && result.value) {
+                    const blob = new Blob([result.value], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `agriconnect-annonces-${Date.now()}.json`;
+                    a.click();
+                }
+            } catch (error) {
+                alert('Aucune donnée à exporter');
+            }
+        }
+
+        // Event listeners
+        callBtn.addEventListener('click', startCall);
+        hangupBtn.addEventListener('click', hangUp);
+        exportBtn.addEventListener('click', exportData);
+
+        keys.forEach(key => {
+            key.addEventListener('click', () => {
+                handleKeyPress(key.dataset.key);
+            });
+        });
+
+        // Initialiser
+        updateJSON();
+    </script>
+</body>
+</html>
