@@ -84,8 +84,4 @@ gaspillage\
 
 ## 👥 Équipe
 
--   Aminata BA -- Licence 3 Big Data\
--   Anta NGOM -- Licence 3 Big Data\
--   Baba BA -- Data Analyste / Scientifique\
--   Leslye NKWA -- Cycle Ingénieurs Statistique Économique\
--   Ben Idriss DILOMA -- Cycle Ingénieurs Statistique Économique
+![](team.png)
