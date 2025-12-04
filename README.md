@@ -1,92 +1,84 @@
-# IZZI -- Application de mise en relation producteurs--acheteurs
+# IZZI
 
-## 🌾 Problème
+Application React pour connecter agriculteurs et acheteurs au Sénégal.
 
-Selon le rapport *Feed the Future* de l'IPAR (2022), le département de
-Podor a enregistré plus de **5,6 milliards FCFA de pertes de
-récoltes**.\
-Chaque année, des milliards sont perdus au Sénégal simplement parce que
-**producteurs et acheteurs ne sont pas connectés**.
+## Installation
 
-------------------------------------------------------------------------
+```bash
+npm install
+```
 
-## 🚀 Solution : IZZI
+## Configuration Firebase
 
-IZZI est une application multifonction qui **connecte producteurs et
-acheteurs**,\
-**avec ou sans internet**, et accessible à tous les profils :
+1. Créez un projet Firebase sur [Firebase Console](https://console.firebase.google.com/)
+2. Activez Firestore Database dans votre projet
+3. Configurez les règles de sécurité Firestore (mode test pour le développement) :
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /{document=**} {
+         allow read, write: if true;
+       }
+     }
+   }
+   ```
+4. Copiez vos clés de configuration Firebase dans `src/config/firebase.js`
 
--   Agriculteurs analphabètes avec smartphone\
--   Agriculteurs avec téléphones basiques\
--   Agriculteurs alphabètes avec smartphone\
--   Acheteurs (grossistes, transformateurs, supermarchés, restaurants,
-    etc.)
+## Développement
 
-------------------------------------------------------------------------
+```bash
+npm run dev
+```
 
-## 🎯 Marché cible
+L'application sera accessible sur `http://localhost:5173`
 
--   Producteurs agricoles\
--   Acteurs économiques\
--   Transformateurs, commerçants, supermarchés, restaurateurs, etc.
+## Build
 
-------------------------------------------------------------------------
+```bash
+npm run build
+```
 
-## 💼 Modèle économique
+## Structure du projet
 
--   **Frais de publication : 250 FCFA / annonce**
--   **Partenariats B2B** avec ONG et acteurs de développement
--   **Publicité ciblée** sur les produits agricoles
+```
+agriconnect2/
+├── src/
+│   ├── components/       # Composants React
+│   │   ├── PageAccueil.jsx
+│   │   ├── PageAgriculteur.jsx
+│   │   └── PageAcheteur.jsx
+│   ├── config/           # Configuration
+│   │   └── firebase.js
+│   ├── data/             # Données
+│   │   ├── produits.js
+│   │   └── annonces.js
+│   ├── services/          # Services (Firebase)
+│   │   └── firebaseService.js
+│   ├── utils/             # Utilitaires
+│   │   └── storage.js
+│   ├── App.jsx           # Composant principal
+│   ├── main.jsx          # Point d'entrée
+│   └── index.css        # Styles Tailwind
+├── public/
+├── index.html
+├── package.json
+├── vite.config.js
+└── tailwind.config.js
+```
 
-------------------------------------------------------------------------
+## Fonctionnalités
 
-## 🔑 Innovations
+- ✅ Publication d'annonces par les agriculteurs
+- ✅ Recherche et filtrage des produits pour les acheteurs
+- ✅ Synchronisation en temps réel via Firebase Firestore
+- ✅ Les produits sont visibles par tous les acheteurs
+- ✅ Persistance des données dans le cloud
 
--   Accessibilité universelle (langues locales, interface simple)
--   Reconnaissance vocale pour publier une annonce facilement
--   Automatisation du cycle de vente
--   Fonctionnement avec ou sans connexion Internet
+## Technologies utilisées
 
-------------------------------------------------------------------------
-
-## 🌱 Impact
-
-**Social** - Inclusion des producteurs sans smartphone / sans internet\
-- Réduction de l'insécurité alimentaire
-
-**Environnemental** - Moins de pertes post-récolte → réduction du
-gaspillage\
-- Utilisation plus efficace des terres
-
-**Économique** - Augmentation des revenus\
-- Meilleure visibilité et rapidité de vente\
-- Marché structuré et traçable
-
-------------------------------------------------------------------------
-
-## 🔮 Perspectives d'avenir
-
--   Transcription multilingue (français/anglais + langues locales)
--   Extraction automatique : produit, quantité, prix, lieu, contact
--   Accessibilité totale pour utilisateurs sans smartphone
--   Automatisation renforcée du processus annonce → vente
-
-------------------------------------------------------------------------
-
-## 🌍 Stratégie de croissance
-
-1.  **Région pilote**\
-2.  **Extension nationale** (web + mobile)\
-3.  **Scalabilité CEDEAO**
-
-------------------------------------------------------------------------
-
-## 👥 Équipe
-
--   Aminata BA -- Licence 3 Big Data\
--   Anta NGOM -- Licence 3 Big Data\
--   Baba BA -- Data Analyste / Scientifique\
--   Leslye NKWA -- Cycle Ingénieurs Statistique Économique\
--   Ben Idriss DILOMA -- Cycle Ingénieurs Statistique Économique
-
-
+- React 18
+- Vite
+- Tailwind CSS
+- Lucide React (icônes)
+- Firebase Firestore (base de données en temps réel)

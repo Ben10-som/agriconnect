@@ -16,13 +16,6 @@ dist-ssr
 .env
 .env.local
 .env.production
-.env.development
-.env.*.local
-
-# Configs contenant des clés/API (ne pas versionner les vraies valeurs)
-src/config/firebase.js
-src/config/ai.js
-src/config/*.local.js
 
 # Editor directories and files
 .vscode/*
